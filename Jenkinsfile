@@ -8,16 +8,19 @@ podTemplate(cloud: 'kubernetes' ,label: 'docker',
   ]) {
   node('docker') {
     gitlabCommitStatus(name: 'jenkins') {
+      git credentialsId: '099611cd-2eb6-400f-93a5-8ec84a4e7b29', url: 'ssh://git@10.208.123.222:8066/lanqisong/project-test'
+      sh "git rev-parse --short HEAD > commit-id"
+      tag = readFile('commit-id').replace("\n", "").replace("\r", "")
       stage('Build Docker image') {
         container('docker') {
-          sh "docker build --no-cache -t nginx ."
-          sh "docker tag nginx 127.0.0.1:5000/library/nginx"
-          sh "docker push 127.0.0.1:5000/library/nginx"
+          sh "docker build --no-cache -t nginx:${tag} ."
+          sh "docker tag nginx:${tag} 127.0.0.1:5000/library/nginx:${tag}"
+          sh "docker push 127.0.0.1:5000/library/nginx:${tag}"
         }
       }
       stage('Apply new deployment'){
         container('kubectl') {
-          sh "kubectl apply -f deployment.yaml"
+          sh "sed 's#nginx:latest#nginx:'${tag}'#g' deployment.yaml | kubectl apply -f -"
           sh "kubectl rollout status deployment/nginx"
         }
       }

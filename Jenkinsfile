@@ -8,7 +8,7 @@ podTemplate(cloud: 'kubernetes' ,label: 'docker',
   ]) {
   node('docker') {
     gitlabCommitStatus(name: 'jenkins') {
-      git credentialsId: '099611cd-2eb6-400f-93a5-8ec84a4e7b29', url: 'ssh://git@10.208.123.222:8066/lanqisong/project-test'
+      git credentialsId: 'jenkins-gitlab', url: 'ssh://git@127.0.0.1:8066/lanqisong/project-test'
       sh "git rev-parse --short HEAD > commit-id"
       tag = readFile('commit-id').replace("\n", "").replace("\r", "")
       stage('Build Docker image') {
